@@ -19,6 +19,20 @@ export class ApiResponse<T> {
 }
 
 export class TodoResponse {
+  id: string;
+  title: string;
+
+  constructor(id: string, title: string) {
+      this.id = id;
+      this.title = title;
+  }
+
+  static from(todo: Todo): TodoResponse {
+    return new TodoResponse(todo.id, todo.title);
+  }
+}
+
+export class TodoDetailResponse {
   title: string;
   description: string;
   done: boolean;
@@ -39,8 +53,8 @@ export class TodoResponse {
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
-  static from(todo: Todo): TodoResponse {
-    return new TodoResponse(
+  static from(todo: Todo): TodoDetailResponse {
+    return new TodoDetailResponse(
         todo.title,
         todo.description,
         todo.done,
@@ -68,16 +82,5 @@ export class TodoRequest {
     this.done = done;
     this.createdAt = createdAt;
     this.lastUpdatedAt = lastUpdatedAt;
-  }
-
-  toTodo(id: string): Todo {
-    return new Todo(
-        id,
-        this.title,
-        this.description,
-        this.done,
-        this.createdAt,
-        this.lastUpdatedAt
-    );
   }
 }

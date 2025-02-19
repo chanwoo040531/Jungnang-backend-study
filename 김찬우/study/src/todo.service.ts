@@ -3,7 +3,7 @@ import {Todo} from "./todo.domain";
 
 @Injectable()
 export class TodoService {
-  todoRepository: Map<string, Todo>
+  todoRepository: Map<string, Todo> = new Map();
 
   save(todo: Todo): Todo {
     this.todoRepository.set(todo.id, todo);

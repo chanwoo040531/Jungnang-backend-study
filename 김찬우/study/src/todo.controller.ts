@@ -1,46 +1,68 @@
-import {Controller, Delete, Get, Param, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {TodoService} from './todo.service';
-import {ApiResponse, TodoRequest, TodoResponse} from "./todo.dto";
+import {ApiResponse, TodoRequest, TodoDetailResponse, TodoResponse} from "./todo.dto";
+import {UuidFactory} from "@nestjs/core/inspector/uuid-factory";
+import {Todo} from "./todo.domain";
 
 @Controller("v1/todos")
 export class TodoController {
-  constructor(private readonly todoService: TodoService) {
-  }
+    constructor(private readonly todoService: TodoService) {
+    }
 
-  @Get()
-  getAll(): ApiResponse<TodoResponse[]> {
-    const todoList = this.todoService.getAll()
-        .map(todo => TodoResponse.from(todo));
+    @Post()
+    create(@Body() request: TodoRequest): ApiResponse<TodoDetailResponse> {
+        const uuid = UuidFactory.get();
+        const todo = this.todoService.save(this.toTodo(uuid, request));
+        const todoResponse = TodoDetailResponse.from(todo);
 
-    return ApiResponse.success(todoList);
-  }
+        return ApiResponse.success(todoResponse);
+    }
 
-  @Get(":todo-id")
-  getTodo(@Param('todo-id') todoId: string): ApiResponse<TodoResponse> {
+    @Get()
+    getAll(): ApiResponse<TodoResponse[]> {
+        const todoList = this.todoService.getAll()
+            .map(todo => TodoResponse.from(todo));
 
-    const todo = this.todoService.getTodo(todoId);
-    const todoResponse = TodoResponse.from(todo);
+        return ApiResponse.success(todoList);
+    }
 
-    return ApiResponse.success(todoResponse);
-  }
+    @Get(":todoId")
+    getTodo(@Param('todoId') todoId: string): ApiResponse<TodoDetailResponse> {
 
-  @Put(":todo-id")
-  updateTodo(
-      @Param('todo-id') todoId: string,
-      @Param('todo') request: TodoRequest
-  ): ApiResponse<TodoResponse> {
-    const updatedTodo = this.todoService.updateTodo(todoId, request.toTodo(todoId));
-    const todoResponse = TodoResponse.from(updatedTodo);
+        const todo = this.todoService.getTodo(todoId);
+        const todoResponse = TodoDetailResponse.from(todo);
 
-    return ApiResponse.success(todoResponse);
-  }
+        return ApiResponse.success(todoResponse);
+    }
 
-  @Delete(":todo-id")
-  delete(
-      @Param('todo-id') todoId: string,
-  ) {
-    this.todoService.deleteTodo(todoId);
+    @Put(":todoId")
+    updateTodo(
+        @Param('todoId') todoId: string,
+        @Body() request: TodoRequest
+    ): ApiResponse<TodoDetailResponse> {
+        const updatedTodo = this.todoService.updateTodo(todoId, this.toTodo(todoId, request));
+        const todoResponse = TodoDetailResponse.from(updatedTodo);
 
-    return ApiResponse.success("Todo deleted");
-  }
+        return ApiResponse.success(todoResponse);
+    }
+
+    @Delete(":todoId")
+    delete(
+        @Param('todoId') todoId: string,
+    ) {
+        this.todoService.deleteTodo(todoId);
+
+        return ApiResponse.success("Todo deleted");
+    }
+
+    private toTodo(id: string, request: TodoRequest): Todo {
+        return new Todo(
+            id,
+            request.title,
+            request.description,
+            request.done,
+            request.createdAt,
+            request.lastUpdatedAt
+        );
+    }
 }
