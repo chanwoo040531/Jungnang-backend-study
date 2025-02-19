@@ -1,6 +1,6 @@
-import {Controller, Get, Param, Put} from '@nestjs/common';
+import {Controller, Delete, Get, Param, Put} from '@nestjs/common';
 import {TodoService} from './todo.service';
-import {ApiResponse, TodoResponse} from "./todo.dto";
+import {ApiResponse, TodoRequest, TodoResponse} from "./todo.dto";
 
 @Controller("v1/todos")
 export class TodoController {
@@ -27,11 +27,20 @@ export class TodoController {
   @Put(":todo-id")
   updateTodo(
       @Param('todo-id') todoId: string,
-      @Param('todo') todo: TodoResponse
+      @Param('todo') request: TodoRequest
   ): ApiResponse<TodoResponse> {
-    const updatedTodo = this.todoService.updateTodo(todoId, todo);
+    const updatedTodo = this.todoService.updateTodo(todoId, request.toTodo(todoId));
     const todoResponse = TodoResponse.from(updatedTodo);
 
     return ApiResponse.success(todoResponse);
+  }
+
+  @Delete(":todo-id")
+  delete(
+      @Param('todo-id') todoId: string,
+  ) {
+    this.todoService.deleteTodo(todoId);
+
+    return ApiResponse.success("Todo deleted");
   }
 }

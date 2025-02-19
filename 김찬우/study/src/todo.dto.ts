@@ -70,9 +70,9 @@ export class TodoRequest {
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
-  toTodo(): Todo {
+  toTodo(id: string): Todo {
     return new Todo(
-        "",
+        id,
         this.title,
         this.description,
         this.done,
