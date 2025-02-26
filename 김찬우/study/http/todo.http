@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:3000/v1/todos
+@contentType = application/json
+@todoId = 67bed05a812b3f432ea56b14
+
+### POST todos
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "title": "밥 먹기",
+  "description": "중식"
+}
+
+### GET todos
+GET {{baseUrl}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+### GET todo
+GET {{baseUrl}}/{{todoId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+### PUT todo
+PUT {{baseUrl}}/{{todoId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "title": "간식 먹기",
+  "description": "아이스크림"
+}
+
+### DELETE todo
+DELETE {{baseUrl}}/{{todoId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}

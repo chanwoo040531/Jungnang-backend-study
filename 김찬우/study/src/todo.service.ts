@@ -1,39 +1,40 @@
-import {Injectable} from '@nestjs/common';
-import {Todo} from "./todo.domain";
+import {Injectable, NotFoundException} from '@nestjs/common';
+import {Todo, TodoDocument} from "./todo.domain";
+import {Model} from "mongoose";
+import {InjectModel} from "@nestjs/mongoose";
+import {TodoRequest} from "./todo.dto";
 
 @Injectable()
 export class TodoService {
-  todoRepository: Map<string, Todo> = new Map();
-
-  save(todo: Todo): Todo {
-    this.todoRepository.set(todo.id, todo);
-    return todo;
+  constructor(@InjectModel(Todo.name) private todoModel: Model<TodoDocument>) {
   }
 
-  getTodo(id: string): Todo {
-    return this.todoRepository.get(id) ?? this.throwError("Todo not found");
+  async save(request: TodoRequest): Promise<TodoDocument> {
+    const newTodo = new this.todoModel(request);
+    return newTodo.save();
   }
 
-  getAll(): Todo[] {
-    return [...this.todoRepository.values()];
+  async getTodo(id: string): Promise<TodoDocument> {
+    return await this.todoModel.findById(id).exec()
+        ?? this.throwNotFoundException("Todo not found");
   }
 
-  updateTodo(id: string, todo: Todo): Todo {
-    if (!this.todoRepository.has(id)) {
-      this.throwError("Todo not found");
-    }
-    this.todoRepository.set(id, todo);
-    return todo;
+  async getAll(): Promise<TodoDocument[]> {
+    return this.todoModel.find().exec();
   }
 
-  deleteTodo(id: string): void {
-    if (!this.todoRepository.has(id)) {
-      this.throwError("Todo not found");
-    }
-    this.todoRepository.delete(id);
+  async updateTodo(id: string, request: TodoRequest): Promise<TodoDocument> {
+    return await this.todoModel
+            .findByIdAndUpdate(id, request, {new: true})
+            .exec()
+        ?? this.throwNotFoundException("Todo not found");
   }
 
-  private throwError(message: string): never {
-    throw new Error(message);
+  async deleteTodo(id: string): Promise<void> {
+    await this.todoModel.findByIdAndDelete(id).exec()
+  }
+
+  private throwNotFoundException(message: string): never {
+    throw new NotFoundException(message);
   }
 }

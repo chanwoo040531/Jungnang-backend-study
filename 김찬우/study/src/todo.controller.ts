@@ -1,68 +1,46 @@
 import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {TodoService} from './todo.service';
-import {ApiResponse, TodoRequest, TodoDetailResponse, TodoResponse} from "./todo.dto";
-import {UuidFactory} from "@nestjs/core/inspector/uuid-factory";
-import {Todo} from "./todo.domain";
+import {ApiResponse, TodoDetailResponse, TodoRequest, TodoResponse} from "./todo.dto";
 
 @Controller("v1/todos")
 export class TodoController {
-    constructor(private readonly todoService: TodoService) {
-    }
+  constructor(private readonly todoService: TodoService) {
+  }
 
-    @Post()
-    create(@Body() request: TodoRequest): ApiResponse<TodoDetailResponse> {
-        const uuid = UuidFactory.get();
-        const todo = this.todoService.save(this.toTodo(uuid, request));
-        const todoResponse = TodoDetailResponse.from(todo);
+  @Post()
+  async create(@Body() request: TodoRequest) {
+    return this.todoService.save(request)
+        .then(todo => TodoResponse.from(todo))
+        .then(todoResponse => ApiResponse.success(todoResponse));
+  }
 
-        return ApiResponse.success(todoResponse);
-    }
+  @Get()
+  async getAll() {
+    return this.todoService.getAll()
+        .then(todos => todos.map(todo => TodoResponse.from(todo)))
+        .then(todoResponses => ApiResponse.success(todoResponses));
+  }
 
-    @Get()
-    getAll(): ApiResponse<TodoResponse[]> {
-        const todoList = this.todoService.getAll()
-            .map(todo => TodoResponse.from(todo));
+  @Get(":todoId")
+  async getTodo(@Param('todoId') todoId: string) {
+    return this.todoService.getTodo(todoId)
+        .then(todo => TodoDetailResponse.from(todo))
+        .then(todoResponse => ApiResponse.success(todoResponse));
+  }
 
-        return ApiResponse.success(todoList);
-    }
+  @Put(":todoId")
+  async updateTodo(
+      @Param('todoId') todoId: string,
+      @Body() request: TodoRequest
+  ) {
+    return this.todoService.updateTodo(todoId, request)
+        .then(todo => TodoDetailResponse.from(todo))
+        .then(todoResponse => ApiResponse.success(todoResponse));
+  }
 
-    @Get(":todoId")
-    getTodo(@Param('todoId') todoId: string): ApiResponse<TodoDetailResponse> {
-
-        const todo = this.todoService.getTodo(todoId);
-        const todoResponse = TodoDetailResponse.from(todo);
-
-        return ApiResponse.success(todoResponse);
-    }
-
-    @Put(":todoId")
-    updateTodo(
-        @Param('todoId') todoId: string,
-        @Body() request: TodoRequest
-    ): ApiResponse<TodoDetailResponse> {
-        const updatedTodo = this.todoService.updateTodo(todoId, this.toTodo(todoId, request));
-        const todoResponse = TodoDetailResponse.from(updatedTodo);
-
-        return ApiResponse.success(todoResponse);
-    }
-
-    @Delete(":todoId")
-    delete(
-        @Param('todoId') todoId: string,
-    ) {
-        this.todoService.deleteTodo(todoId);
-
-        return ApiResponse.success("Todo deleted");
-    }
-
-    private toTodo(id: string, request: TodoRequest): Todo {
-        return new Todo(
-            id,
-            request.title,
-            request.description,
-            request.done,
-            request.createdAt,
-            request.lastUpdatedAt
-        );
-    }
+  @Delete(":todoId")
+  async delete(@Param('todoId') todoId: string) {
+    return this.todoService.deleteTodo(todoId)
+        .then(() => ApiResponse.success("Todo deleted successfully"));
+  }
 }

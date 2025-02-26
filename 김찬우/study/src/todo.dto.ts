@@ -1,6 +1,6 @@
-import {Todo} from "./todo.domain";
+import {TodoDocument} from "./todo.domain";
 
-export class ApiResponse<T> {
+export class ApiResponse<out T> {
   body: T | null;
   message: string | null;
 
@@ -22,12 +22,12 @@ export class TodoResponse {
   id: string;
   title: string;
 
-  constructor(id: string, title: string) {
-      this.id = id;
-      this.title = title;
+  private constructor(id: string, title: string) {
+    this.id = id;
+    this.title = title;
   }
 
-  static from(todo: Todo): TodoResponse {
+  static from(todo: TodoDocument): TodoResponse {
     return new TodoResponse(todo.id, todo.title);
   }
 }
@@ -39,7 +39,7 @@ export class TodoDetailResponse {
   createdAt: Date;
   lastUpdatedAt: Date;
 
-  constructor(
+  private constructor(
       title: string,
       description: string,
       done: boolean,
@@ -53,13 +53,14 @@ export class TodoDetailResponse {
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
-  static from(todo: Todo): TodoDetailResponse {
+  static from(todo: TodoDocument): TodoDetailResponse {
     return new TodoDetailResponse(
         todo.title,
         todo.description,
         todo.done,
         todo.createdAt,
-        todo.lastUpdatedAt)
+        todo.updatedAt,
+    )
   }
 }
 
@@ -67,20 +68,4 @@ export class TodoRequest {
   title: string;
   description: string;
   done: boolean;
-  createdAt: Date;
-  lastUpdatedAt: Date;
-
-  constructor(
-      title: string,
-      description: string,
-      done: boolean,
-      createdAt: Date,
-      lastUpdatedAt: Date
-  ) {
-    this.title = title;
-    this.description = description;
-    this.done = done;
-    this.createdAt = createdAt;
-    this.lastUpdatedAt = lastUpdatedAt;
-  }
 }
